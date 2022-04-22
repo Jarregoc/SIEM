@@ -1,0 +1,22 @@
+{
+    "name" : "SIEMy",
+    "description" : "Act like a simulated SIEM. This is the indexdb version.",
+    "version" : "1.0",
+    "manifest_version" : 2,
+    "icons" : {
+        "16" : "/icons/Amongus-16.png",
+        "48" : "/icons/Amongus-16.png",
+        "128" : "/icons/LMU_lion.jpg"
+    },
+    "background" : {
+        "scripts" : ["./background.js"]
+    },
+    "options_page" : "./options.html",
+    "browser_action" : {
+        "default_popup" : "popup.html"
+    },
+    "permissions" : [
+        "tabs",
+        "https://www.google.com/*"
+    ]
+}
