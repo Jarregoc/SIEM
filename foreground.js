@@ -1,1 +1,1 @@
-console.log("from foreground");
+document.querySelector('img.lnXdpd').classList.add('spins')
