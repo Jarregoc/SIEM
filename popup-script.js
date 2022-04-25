@@ -27,13 +27,29 @@ chrome.runtime.onMessage((request, sender ,sendResponse) => {
     }
     //Delete Message: "Deleted the record"
     else if(request.message === "Deleted the record") {
-        
+        if(request.payload) {
+            document.querySelectorAll(".search-label").forEach(s => s.style.display = "None")
+            document.querySelectorAll(".updated-details").forEach(ud => ud.style.display = "None")
+            document.querySelectorAll(".details").forEach(d => d.style.display = "None")
+            document.getElementById("delete-record").style.display = "None"
+            document.getElementById("edit-record").style.display = "None"
+        }
     }
     //Update Message: "Updated the record"
     else if(request.message === "Updated the record") {
         if(request.payload) {
             document.getElementById("edit-record").innerText = "Changes saved"
-            
+
+            setTimeout(() => {
+                document.getElementById("edit-record").disabled = false
+                document.getElementById("edit-record").innerText = "Edit Record"
+                document.getElementById("delete-record").style.display = ""
+            }, 1500)
+
+            document.querySelectorAll(".updated-details").forEach(ud => ud.style.display = "None")
+            document.querySelectorAll(".details").forEach(d => d.style.display = "")
+            document.getElementById("details-URL").innerText = document.getElementById("update-URL").value
+            document.getElementById("details-date").innerText = document.getElementById("update-date").value
         }
     }
 })
