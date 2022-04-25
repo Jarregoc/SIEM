@@ -1,13 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-    <body>
-        <h1>
-            Im the popup.
-        </h1>
-    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #container {
+            width: 500px;
+            height: fit-content;
+            display: flex;
+        }
+
+        #add {
+            width: fit-content;
+            height: 200px;
+            padding-right: 25px;
+            margin-right: 25px;
+            border-right: 2px solid red;
+        }
+
+        #search {
+            width: fit-content;
+            height: 200px;
+        }
+
+        .search-label {
+            font-weight: bold;
+        }
+
+        .details {
+            font-weight: normal;
+            font-size: 1.5em;
+        }
+
+        .updated-details {
+            font-weight: normal;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="add">
+            <form id="add_form">
+                <input class="add_rec_input" type="text" name="URL" id="URL" placeholder="URL">
+                <br>
+                <input class="add_rec_input" type="text" name="date" id="date" placeholder="dd/mm/yy">
+                <br>
+                <br>
+                <button type="submit">Add Threat</button>
+            </form>
+        </div>
+        <div id="search">
+            <form id="search_form">
+                <input type="text" id="search_term" placeholder="Search by URL">
+                <button id="search_for_record">Search</button>
+                <br>
+                <br>
+                <span class="search-label">URL:
+                    <span class="details" id="details-URL"></span>
+                    <input class="updated-details" type="text" id="update-URL">
+                </span>
+                <br>
+                <span class="search-label">Date Entered:
+                    <span class="details" id="details-date"></span>
+                    <input class="updated-details" type="text" id="update-date">
+                </span>
+                <br>
+                <br>
+                <button type="submit" id="edit-Threat">Edit Threat</button>
+                <button id="delete-Threat">Delete Threat</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./popup-script.js"></script>
+</body>
+
 </html>
