@@ -27,7 +27,47 @@
 // })
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if(request.message  === 'insert') {
+        let request = insert_record(request.payload)
 
+        request.then(res => {
+            chrome.runtime.sendMessage({
+                message: "Inserted the record",
+                payload: res
+            })
+        })
+        
+    }
+    else if(request.message  === 'get') {
+        let request = get_records(request.payload)
+
+        request.then(res => {
+            chrome.runtime.sendMessage({
+                message: "Got the record",
+                payload: res
+            })
+        })
+    }
+    else if(request.message  === 'delete') {
+        let request = delete_records(request.payload)
+
+        request.then(res => {
+            chrome.runtime.sendMessage({
+                message: "Deleted the record",
+                payload: res
+            })
+        })
+    }
+    else if(request.message  === 'update') {
+        let request = update_records(request.payload)
+
+        request.then(res => {
+            chrome.runtime.sendMessage({
+                message: "Updated the record",
+                payload: res
+            })
+        })
+    }
 })
 
 let roster = [
@@ -67,7 +107,7 @@ function create_database() {
         db = event.target.result
         console.log("DB opened")
 
-        insert_records(roster)
+        //insert_record(roster)
 
         db.onerror = function(event) {
             console.log("Failed to open DB")
@@ -91,26 +131,31 @@ function delete_database() {
     }
 }
 
-function insert_records(records) {
+function insert_record(records) {
     if(db) {
         const insert_transaction = db.transaction("roster", "readwrite")
         const objectStore = insert_transaction.objectStore("roster")
-
-        insert_transaction.oncomplete = function() {
-            console.log("Insert transactions completed")
-        }
-
-        insert_transaction.onerror = function() {
-            console.log("Insert transactions were not completed")
-        }
-
-        roster.forEach(threat => {
-            let request = objectStore.add(threat)
-
-            request.onsuccess = function () {
-                console.log("Added: " , threat)
+        return new Promise((resolve, reject) => {
+            insert_transaction.oncomplete = function() {
+                console.log("Insert transactions completed")
+                resolve(true)
             }
+
+            insert_transaction.onerror = function() {
+                console.log("Insert transactions were not completed")
+                resolve(false)
+            }
+
+            roster.forEach(threat => {
+                let request = objectStore.add(threat)
+
+                request.onsuccess = function () {
+                    console.log("Added: " , threat)
+                }
+            })
         })
+
+        
     }
 }
 
@@ -118,19 +163,20 @@ function get_record(URL) {
     if(db) {
         const get_transaction = db.transaction("roster", "readonly")
         const objectStore = get_transaction.objectStore("roster")
-
-        get_transaction.oncomplete = function() {
-            console.log("get transactions completed")
-        }
-
-        get_transaction.onerror = function() {
-            console.log("get transactions were not completed")
-        }
-
-        let request = objectStore.get(URL)
-        request.onsuccess = function(event) {
-            console.log(event.target.request)
-        }
+        return new Promise((resolve, reject) => {
+            get_transaction.oncomplete = function() {
+                console.log("get transactions completed")
+            }
+    
+            get_transaction.onerror = function() {
+                console.log("get transactions were not completed")
+            }
+    
+            let request = objectStore.get(URL)
+            request.onsuccess = function(event) {
+                resolve(event.target.result)
+            }
+        })
     }
 }
 
@@ -138,16 +184,19 @@ function update_record(record) {
     if(db) {
         const put_transaction = db.transaction("roster", "readwrite")
         const objectStore = put_transaction.objectStore("roster")
-
-        put_transaction.oncomplete = function() {
-            console.log("put transactions completed")
-        }
-
-        put_transaction.onerror = function() {
-            console.log("put transactions were not completed")
-        }
-
-        let request = objectStore.put(record)
+        return new Promise((resolve, reject) => {
+            put_transaction.oncomplete = function() {
+                console.log("put transactions completed")
+                resolve(true)
+            }
+    
+            put_transaction.onerror = function() {
+                console.log("put transactions were not completed")
+                resolve(false)
+            }
+    
+            objectStore.put(record) 
+        })
     }
 }
 
@@ -155,15 +204,20 @@ function delete_record(URL) {
     if(db) {
         const delete_transaction = db.transaction("roster", "readwrite")
         const objectStore = delete_transaction.objectStore("roster")
-
-        delete_transaction.oncomplete = function() {
-            console.log("delete transactions completed")
-        }
-
-        delete_transaction.onerror = function() {
-            console.log("delete transactions were not completed")
-        }
-
-        objectStore.delete(URL)
+        return new Promise((resolve, reject) => {
+            delete_transaction.oncomplete = function() {
+                console.log("delete transactions completed")
+                resolve(true)
+            }
+    
+            delete_transaction.onerror = function() {
+                console.log("delete transactions were not completed")
+                resolve(false)
+            }
+    
+            objectStore.delete(URL)
+        })
     }
 }
+
+create_database()
