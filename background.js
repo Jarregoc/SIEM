@@ -1,3 +1,37 @@
+// let activeTabID = 0
+
+// chrome.tabs.onActivated.addListener(tab => {
+//     chrome.tabs.get(tab.tabId, current_tab_info => {
+//         activeTabID = tab.tabId
+//         if(/^https:\/\/www\.google/.test(current_tab_info.url)) {
+//             chrome.tabs.insertCSS(null, {file: './mystyles.css'})
+//             chrome.tabs.executeScript(null, {file: './foreground.js'}, () => {
+//                 console.log("i injected")
+//             })
+//         }
+//     })
+// });
+let activeTabID = 0
+
+chrome.tabs.onActivated.addListener((tab) => {
+    chrome.tabs.get(tab.tabId, current_tab_info => {
+        activeTabID = tab.tabId
+        let get_transaction = db.transaction("roster", "readwrite")
+        let get_url_store = get_transaction.objectStore("roster")
+    
+        let get_url_request = get_url_store.get(current_tab_info.url)
+        get_url_request.onsuccess = function(event) {
+            console.log(get_url_request.result)
+            if(get_url_request.result != undefined) {
+                alert("This page is a flagged page. Are you sure you want to connect to this page? FLAGGED URL: " + get_url_request.result.url)
+            }
+            else {
+                console.log("The current active tab is not a flagged page")
+            }
+        }
+    })
+})
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if(request.message === 'insert') {
         let insert_request = insert_records(request.payload);
@@ -39,6 +73,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }) 
         })
     }
+    alert("test alert")
 });
 
 let roster = [{
