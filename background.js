@@ -42,22 +42,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 let roster = [{
-        //"name": "s",
         "date": "22/11/80",
         "url": "https://www.google.com/",
-        //"index" : 1
     },
     {
-        //"name": "duck",
         "date": "02/05/78",
         "url": "https://www.youtube.com/",
-        //"index" : 2,
     },
     {
-        //"name": "lala",
         "date": "18/07/95",
         "url": "https://www.lmu.edu/",
-        //"index" : 3,
     },
     {
         "date": "03/14/87",
@@ -80,7 +74,6 @@ function create_database() {
 
         console.log("in updgradeneeded")
         let objectStore = db.createObjectStore('roster', {keyPath : 'url'})
-        //objectStore.createIndex("name", "name", {unique: false})
         objectStore.createIndex("date", "date", {unique: false})
         
         objectStore.transaction.oncomplete = function(event) {
@@ -91,10 +84,6 @@ function create_database() {
     request.onsuccess = function(event) {
         db = event.target.result;
         console.log("DB opened");
-
-        //let objectStore = db.createObjectStore('roster', {keyPath : 'url'})
-        // objectStore.createIndex("name", "name", {unique: false})
-        // objectStore.createIndex("dob", "dob", {unique: false})
 
         insert_records(roster, true)
 
@@ -141,10 +130,6 @@ function insert_records(records, needsClear = false) {
                 let clearStore = objectStore.clear() 
             }
             records.forEach( person => {
-                // let temp1 = [{name : "john" , dob : "02/21/2000", url: "j1d@lol"}]
-                // let temp2 = [{name : "john" , dob : "02/21/2000", url: "jd2@lol"}]
-                // let temp3 = [{name : "john" , dob : "02/21/2000", url: "jd3@lol"}]
-                // console.log(temp1[0].name + " " + temp1[0].url + " " + temp1[0].dob)
                 let getPerson = objectStore.get(person.url)
                 getPerson.onsuccess = function() {
                     if(getPerson.result == undefined) {
@@ -235,5 +220,5 @@ function delete_record(url) {
 }
 
 create_database()
-//get_record("yea@lll.org")
+
 
