@@ -1,113 +1,102 @@
-// let activeTabID = 0
-
-// chrome.tabs.onActivated.addListener(tab => {
-//     chrome.tabs.get(tab.tabId, current_tab_info => {
-//         activeTabID = tab.tabId
-//         if(/^https:\/\/www\.google/.test(current_tab_info.url)) {
-//             chrome.tabs.insertCSS(null, {file: './mystyles.css'})
-//             chrome.tabs.executeScript(null, {file: './foreground.js'}, () => {
-//                 console.log("i injected")
-//             })
-//         }
-//     })
-// });
-
-// chrome.tabs.executeScript(null, {file: './foreground.js'}, () => {
-//     console.log("i injected")
-// })
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//     if(request.message === 'check the storage') {
-//         chrome.tabs.sendMessage(activeTabID, {message: 'I got your message'})
-        
-//         chrome.storage.local.get("password", value => {
-//             console.log(value)
-//         })
-//     }
-// })
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if(request.message  === 'insert') {
-        let request = insert_record(request.payload)
+    if(request.message === 'insert') {
+        let insert_request = insert_records(request.payload);
 
-        request.then(res => {
-            chrome.runtime.sendMessage({
-                message: "Inserted the record",
+        insert_request.then(res => {
+           chrome.runtime.sendMessage({
+                message: 'insert_success',
                 payload: res
-            })
-        })
-        
-    }
-    else if(request.message  === 'get') {
-        let request = get_records(request.payload)
-
-        request.then(res => {
-            chrome.runtime.sendMessage({
-                message: "Got the record",
-                payload: res
-            })
+            }) 
         })
     }
-    else if(request.message  === 'delete') {
-        let request = delete_records(request.payload)
+    else if(request.message === 'get') {
+        let get_request = get_record(request.payload);
 
-        request.then(res => {
-            chrome.runtime.sendMessage({
-                message: "Deleted the record",
+        get_request.then(res => {
+           chrome.runtime.sendMessage({
+                message: 'get_success',
                 payload: res
-            })
+            }) 
         })
     }
-    else if(request.message  === 'update') {
-        let request = update_records(request.payload)
+    else if(request.message === 'update') {
+        let update_request = update_record(request.payload);
 
-        request.then(res => {
-            chrome.runtime.sendMessage({
-                message: "Updated the record",
+        update_request.then(res => {
+           chrome.runtime.sendMessage({
+                message: 'update_success',
                 payload: res
-            })
+            }) 
         })
     }
-})
+    else if(request.message === 'delete') {
+        let delete_request = delete_record(request.payload);
 
-let roster = [
-    {
-        "URL": "https://www.google.com/",
-        "date": "04/24/22"
+        delete_request.then(res => {
+           chrome.runtime.sendMessage({
+                message: 'delete_success',
+                payload: res
+            }) 
+        })
+    }
+});
+
+let roster = [{
+        //"name": "s",
+        "date": "22/11/80",
+        "url": "https://www.google.com/",
+        //"index" : 1
     },
     {
-        "URL": "https://www.youtube.com/",
-        "date": "04/24/22"
+        //"name": "duck",
+        "date": "02/05/78",
+        "url": "https://www.youtube.com/",
+        //"index" : 2,
     },
     {
-        "URL": "https://www.github.com/",
-        "date": "04/24/22"
+        //"name": "lala",
+        "date": "18/07/95",
+        "url": "https://www.lmu.edu/",
+        //"index" : 3,
+    },
+    {
+        "date": "03/14/87",
+        "url": "https://www.elcamino.edu/",
     },
 ]
 
 let db = null
 
 function create_database() {
-    const request = window.indexedDB.open('MyTestDB')
+    const request = window.indexedDB.open('MySIEM')
 
     request.onerror = function(event) {
         console.log("Problem opening DB")
     }
 
     request.onupgradeneeded = function(event) {
-        db = event.target.result
+        console.log("in updgradeneeded")
+        db = event.target.result;
 
-        let objectStore = db.createObjectStore('roster', {keyPath : 'URL'})
+        console.log("in updgradeneeded")
+        let objectStore = db.createObjectStore('roster', {keyPath : 'url'})
+        //objectStore.createIndex("name", "name", {unique: false})
+        objectStore.createIndex("date", "date", {unique: false})
+        
         objectStore.transaction.oncomplete = function(event) {
-            console.log("ObjectStore Created")
+            console.log("ObjectStore created");
         }
     }
 
     request.onsuccess = function(event) {
-        db = event.target.result
-        console.log("DB opened")
+        db = event.target.result;
+        console.log("DB opened");
 
-        //insert_record(roster)
+        //let objectStore = db.createObjectStore('roster', {keyPath : 'url'})
+        // objectStore.createIndex("name", "name", {unique: false})
+        // objectStore.createIndex("dob", "dob", {unique: false})
+
+        insert_records(roster, true)
 
         db.onerror = function(event) {
             console.log("Failed to open DB")
@@ -116,65 +105,88 @@ function create_database() {
 }
 
 function delete_database() {
-    const request = window.indexedDB.deleteDatabase('MyTestDB')
+    const request = window.indexedDB.deleteDatabase('MySIEM');
 
     request.onerror = function(event) {
         console.log("Problem deleting DB")
     }
 
     request.onsuccess = function(event) {
-        db = event.target.result
-        console.log("DB deleted")
+        db = event.target.result;
+        console.log("DB deleted");
+
         db.onerror = function(event) {
             console.log("Failed to delete DB")
         }
     }
 }
 
-function insert_record(records) {
+function insert_records(records, needsClear = false) {
     if(db) {
-        const insert_transaction = db.transaction("roster", "readwrite")
+        const insert_transaction = db.transaction("roster", "readwrite");
         const objectStore = insert_transaction.objectStore("roster")
+
         return new Promise((resolve, reject) => {
             insert_transaction.oncomplete = function() {
-                console.log("Insert transactions completed")
+                console.log("All insert transactions complete");
                 resolve(true)
             }
 
             insert_transaction.onerror = function() {
-                console.log("Insert transactions were not completed")
+                console.log("Problem inserting records");
                 resolve(false)
             }
-
-            roster.forEach(threat => {
-                let request = objectStore.add(threat)
-
-                request.onsuccess = function () {
-                    console.log("Added: " , threat)
+            if(needsClear) {
+                console.log("clearing")
+                let clearStore = objectStore.clear() 
+            }
+            records.forEach( person => {
+                // let temp1 = [{name : "john" , dob : "02/21/2000", url: "j1d@lol"}]
+                // let temp2 = [{name : "john" , dob : "02/21/2000", url: "jd2@lol"}]
+                // let temp3 = [{name : "john" , dob : "02/21/2000", url: "jd3@lol"}]
+                // console.log(temp1[0].name + " " + temp1[0].url + " " + temp1[0].dob)
+                let getPerson = objectStore.get(person.url)
+                getPerson.onsuccess = function() {
+                    if(getPerson.result == undefined) {
+                        let request = objectStore.add(person);
+                        request.onsuccess = function() {
+                            console.log("Added: ", person);
+                        }
+        
+                        let getStore = objectStore.getAll()
+                        getStore.onsuccess = function(event) {
+                            console.log(getStore.result)
+                        }
+                    }
+                    else {
+                        console.log("the url was already in store: ", person.url)
+                    }
                 }
             })
         })
-
-        
     }
 }
 
-function get_record(URL) {
+function get_record(url) {
+    console.log("in get_record")
     if(db) {
-        const get_transaction = db.transaction("roster", "readonly")
+        console.log("In db true")
+        const get_transaction = db.transaction("roster", "readwrite");
         const objectStore = get_transaction.objectStore("roster")
+
         return new Promise((resolve, reject) => {
             get_transaction.oncomplete = function() {
-                console.log("get transactions completed")
+                console.log("All get transactions complete");
             }
     
             get_transaction.onerror = function() {
-                console.log("get transactions were not completed")
+                console.log("Problem geting records");
             }
     
-            let request = objectStore.get(URL)
+            let request = objectStore.get(url);
             request.onsuccess = function(event) {
-                resolve(event.target.result)
+                console.log(request.result)
+                resolve(request.result);
             }
         })
     }
@@ -182,42 +194,46 @@ function get_record(URL) {
 
 function update_record(record) {
     if(db) {
-        const put_transaction = db.transaction("roster", "readwrite")
+        const put_transaction = db.transaction("roster", "readwrite");
         const objectStore = put_transaction.objectStore("roster")
+
         return new Promise((resolve, reject) => {
             put_transaction.oncomplete = function() {
-                console.log("put transactions completed")
+                console.log("All put transactions complete");
                 resolve(true)
             }
     
             put_transaction.onerror = function() {
-                console.log("put transactions were not completed")
+                console.log("Problem puting records");
                 resolve(false)
             }
     
-            objectStore.put(record) 
+            let request = objectStore.put(record);
         })
     }
 }
 
-function delete_record(URL) {
+function delete_record(url) {
     if(db) {
-        const delete_transaction = db.transaction("roster", "readwrite")
+        const delete_transaction = db.transaction("roster", "readwrite");
         const objectStore = delete_transaction.objectStore("roster")
+
         return new Promise((resolve, reject) => {
             delete_transaction.oncomplete = function() {
-                console.log("delete transactions completed")
+                console.log("All delete transactions complete");
                 resolve(true)
             }
     
             delete_transaction.onerror = function() {
-                console.log("delete transactions were not completed")
+                console.log("Problem deleting records");
                 resolve(false)
             }
     
-            objectStore.delete(URL)
+            objectStore.delete(url);
         })
     }
 }
 
 create_database()
+//get_record("yea@lll.org")
+
