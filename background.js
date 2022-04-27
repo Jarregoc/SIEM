@@ -1,21 +1,5 @@
-// let activeTabID = 0
-
-// chrome.tabs.onActivated.addListener(tab => {
-//     chrome.tabs.get(tab.tabId, current_tab_info => {
-//         activeTabID = tab.tabId
-//         if(/^https:\/\/www\.google/.test(current_tab_info.url)) {
-//             chrome.tabs.insertCSS(null, {file: './mystyles.css'})
-//             chrome.tabs.executeScript(null, {file: './foreground.js'}, () => {
-//                 console.log("i injected")
-//             })
-//         }
-//     })
-// });
-let activeTabID = 0
-
 chrome.tabs.onActivated.addListener((tab) => {
     chrome.tabs.get(tab.tabId, current_tab_info => {
-        activeTabID = tab.tabId
         let get_transaction = db.transaction("roster", "readwrite")
         let get_url_store = get_transaction.objectStore("roster")
     
@@ -73,9 +57,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }) 
         })
     }
-    alert("test alert")
 });
 
+//urls inserted in the database at creation of the database
 let roster = [{
         "date": "22/11/80",
         "url": "https://www.google.com/",
@@ -104,10 +88,8 @@ function create_database() {
     }
 
     request.onupgradeneeded = function(event) {
-        console.log("in updgradeneeded")
         db = event.target.result;
 
-        console.log("in updgradeneeded")
         let objectStore = db.createObjectStore('roster', {keyPath : 'url'})
         objectStore.createIndex("date", "date", {unique: false})
         
@@ -161,7 +143,6 @@ function insert_records(records, needsClear = false) {
                 resolve(false)
             }
             if(needsClear) {
-                console.log("clearing")
                 let clearStore = objectStore.clear() 
             }
             records.forEach( person => {
