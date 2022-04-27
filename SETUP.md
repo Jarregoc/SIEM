@@ -1,4 +1,4 @@
-### Set up Instructions
+# Set up Instructions
 1. Open console and navigate to desired folder
 2. Clone this repo in the desired folder
 3. Open a new chrome tab
